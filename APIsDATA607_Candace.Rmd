@@ -1,0 +1,124 @@
+---
+title: "Accessing New York Times Top Stories API"
+author: "Candace Grant"
+date: "2025-10-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{css}
+.scroll-100 {
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+```
+
+## Introduction
+
+The New York Times provides a rich set of APIs for accessing their content. In this assignment, I will use the **Top Stories API** to retrieve the most important or currently featured articles from the **Science section**. I will construct an interface in R to read JSON data from the API and transform it into an R DataFrame for analysis.
+
+API Documentation: https://developer.nytimes.com/apis
+
+## Load Libraries
+```{r message=FALSE, warning=FALSE}
+library(httr)
+library(jsonlite)
+library(knitr)
+library(DT)
+
+```
+
+## Make API Request
+
+Here I'm requesting the top stories from the Science section of the New York Times.
+```{r}
+# Set API key
+api_key <- "CMlUm9FC6ifPzWmf05n0ZS0l4t5PgTef"
+
+# Make GET request to Top Stories API
+response <- GET(
+  "https://api.nytimes.com/svc/topstories/v2/science.json",
+  query = list(`api-key` = api_key)
+)
+
+# Check if request was successful
+if (status_code(response) == 200) {
+  cat("API request successful!\n")
+} else {
+  stop(paste("API request failed with status:", status_code(response)))
+}
+
+# Parse JSON response
+json_text <- content(response, "text", encoding = "UTF-8")
+data <- fromJSON(json_text)
+
+# Convert to dataframe
+articles_df <- as.data.frame(data$results)
+
+cat("Number of articles retrieved:", nrow(articles_df))
+```
+```{r}
+datatable(
+  articles_df[, c("title", "abstract", "published_date", "byline")],
+  options = list(
+    pageLength = 5,
+    scrollX = TRUE,
+    scrollY = "300px",
+    scrollCollapse = TRUE,
+    paging = TRUE
+  ),
+  class = 'cell-border stripe',
+  rownames = FALSE
+)
+```
+
+## Explore the Data
+
+```{r}
+# Display available columns
+cat("Available columns:\n")
+colnames(articles_df)
+
+# Check dimensions
+cat("\nDataset dimensions:", nrow(articles_df), "rows x", ncol(articles_df), "columns")
+
+# Data structure
+#str(articles_df)
+
+#First few rows
+head(articles_df, 2)
+```
+
+### Preview Articles
+```{r}
+# Display first few articles with key information
+kable(head(articles_df[, c("title", "abstract", "published_date", "byline")], 5),
+      caption = "Top 5 Science Stories from NYT")
+```
+
+### Sample Article Details
+```{r}
+# Show details of the first article
+cat("First Article Title:", articles_df$title[1], "\n\n")
+cat("Abstract:", articles_df$abstract[1], "\n\n")
+cat("URL:", articles_df$url[1], "\n\n")
+cat("Published:", articles_df$published_date[1])
+```
+
+### Summary
+
+This assignment successfully demonstrated how to access the New York Times Top Stories API and transform JSON data into a structured R DataFrame. I retrieved **`r nrow(articles_df)`** current science articles, each containing key information such as titles, abstracts, URLs, publication dates, bylines, and multimedia elements. The resulting DataFrame is ready for further analysis, visualization, or storage in a local database.
+
+### Export Data (Optional)
+```{r eval=FALSE}
+# Save to CSV for future use
+library(readr)
+
+# This will convert list columns to strings
+write_csv(articles_df, "nyt_science_articles.csv")
+```
