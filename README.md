@@ -25,7 +25,7 @@ This project demonstrates how to build an **R interface** to access the **New Yo
 - 🎨 **Interactive Tables** - Scrollable, searchable data display using DT package
 - 📁 **CSV Export** - Save data for further analysis
 - 📝 **R Markdown Report** - Professional HTML output
-- ✅ **Error Handling** - Validates API responses
+
 
 ## 🛠️ Technologies Used
 
